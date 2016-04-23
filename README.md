@@ -1,2 +1,2 @@
 # DoBigCrossword
-This is an online tool to create huge crossword puzzle in a cooperative way
+DoBigCrossword is an online tool to create huge crossword puzzles in a cooperative way.
