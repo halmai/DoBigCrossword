@@ -1,80 +1,71 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
+HOST: http://api.dobigcrossword.com/
 
 # DoBigCrossword
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+This API is able to handle the functionality of a multiuser crossword creator site
 
-## Questions Collection [/questions]
+## Registration [/registraion/]
 
-### List All Questions [GET]
+### Register a user [POST]
 
-+ Response 200 (application/json)
-
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
+Use this function if you want to create a new user. Returns
+- 200 if the registration was successful 
+- 403 if the email address is already in use
+- 403 if the password is wrong (too short, too long, too simple, etc.)
 
 + Request (application/json)
 
         {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
+            "email": "johndoe@gmail.com",
+            "password": "abc123",
         }
 
-+ Response 201 (application/json)
 
-    + Headers
++ Response 200 (application/json)
 
-            Location: /questions/2
+        {
+            "result": "OK",
+        }
 
-    + Body
 
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
-            }
++ Response 403 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "Email address already in use."
+        }
+
++ Response 403 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "The password doesn't meet the requirements."
+        }
+
+### Check if email address exists [GET]
+
+With this function the client can check whether a given email address is already in use or not. It returns
+- 200 if the email address is a valid email address, in this case the is_existing field contains the booleanvalue whether the email address is already used or not
+- 400 if the email address is invalid
+
+
++ Request (application/json)
+
+        {
+            "email": "johndoe@gmail.com",
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "is_existing": false
+        }
+
++ Response 400 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "The email address in invalid."
+        }
