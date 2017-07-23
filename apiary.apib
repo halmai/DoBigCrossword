@@ -5,9 +5,9 @@ HOST: http://api.dobigcrossword.com/
 
 This API is able to handle the functionality of a multiuser crossword creator site
 
-## Authentication [/registraion/]
+## Authentication Account [/auth/account/]
 
-### Register a user [POST]
+### Register a user [PUT]
 
 Use this function if you want to create a new user. Returns
 - 200 if the registration was successful 
@@ -18,14 +18,14 @@ Use this function if you want to create a new user. Returns
 
         {
             "email": "johndoe@gmail.com",
-            "password": "abc123",
+            "password": "abc123"
         }
 
 
 + Response 200 (application/json)
 
         {
-            "result": "OK",
+            "result": "OK"
         }
 
 
@@ -70,7 +70,9 @@ With this function the client can check whether a given email address is already
             "message": "The email address in invalid."
         }
         
-### Log in a user [POST]
+## Login [/auth/login/]
+
+### Log in a user [PUT]
 
 Use this function to log in a user.
 - 200 if the registration was successful. In this case a token is returned which has to be used for the further communication and identification of the user. 
@@ -99,37 +101,9 @@ Use this function to log in a user.
             "message": "Email address or password is wrong."
         }
 
-### Password reminder [POST]
+### Logout [DELETE]
 
-Use this function to request a password reminder email.
-- 200 if the email address exists. It returns the normalised form of the email address where the password reminder email has been sent to.
-- 403 if the email address doesn't exist
-
-+ Request (application/json)
-
-        {
-            "email": " John.Doe@gmail.com  ",
-        }
-
-
-+ Response 200 (application/json)
-
-        {
-            "result": "OK",
-            "email": "johndoe@gmail.com"
-        }
-
-
-+ Response 403 (application/json)
-
-        {
-            "result": "ERROR",
-            "message": "Unknown email address."
-        }
-
-### Logout [POST]
-
-Use this function to invalidate the user's token.
+Use this function to invalidate the user's token (DELETE the is-logged-in status).
 - 200 if the invalidation was successful (the user was logged in and is not logged in anymore).
 - 403 if the user was not logged in
 
@@ -153,3 +127,73 @@ Use this function to invalidate the user's token.
             "result": "ERROR",
             "message": "There was no logged in user with this token."
         }
+        
+## Authentication Password Reset [/auth/passwrod_reset/]
+
+### Password reminder [PUT]
+
+Use this function to request a password reminder email.
+- 200 if the email address exists. It returns the normalised form of the email address where the password reminder email has been sent to. The email contains a link to the password reset page and a verification code. If the user visits the password reset page then they should provide the email address, the verification code and the new password. Then the new password is set for the user.
+- 403 if the email address doesn't exist
+
++ Request (application/json)
+
+        {
+            "email": " John.Doe@gmail.com  "
+        }
+
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "email": "johndoe@gmail.com"
+        }
+
+
++ Response 403 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "Unknown email address."
+        }
+
+### Password reminder [POST]
+
+Use this function to adjust a new password.
+- 200 if the email address exists and based on the verification code, the new password for that user has been set succesfully. 
+- 403 if the email address doesn't exist
+- 401 is the email address exists but the verification code is incorrect
+
++ Request (application/json)
+
+        {
+            "email": "John.Doe@gmail.com",
+            "verification_code": "2wd8y4j9fw6dc8",
+            "new_password": "abCD@1234"
+        }
+
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "email": "johndoe@gmail.com"
+        }
+
+
++ Response 403 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "Unknown email address."
+        }
+
++ Response 401 (application/json)
+
+        {
+            "result": "ERROR",
+            "message": "Wrong verification code"
+        }
+
+
