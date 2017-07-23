@@ -195,3 +195,68 @@ Use this function to adjust a new password.
             "result": "ERROR",
             "message": "Wrong verification code"
         }
+        
+        
+## Allocations [/allocation/]
+
+### Create an allocation [POST]
+
+Creates a new allocation for a user (and unallocate the previous one if it exists).
+
+If the user is not given then the user defined by the token is used. If the user is given and is different from the token's user then the requester has to be the manager of the crossword.
+
+The "allocations" member of the response is an N-digit-long string where N = width * height from the request and which contains 1s for each successfully allocated cells and 0s for the unsuccessfull ones, row by row. A cell allocation may be unsuccessful if the cell is alreaady allocated by someone else. 
+
+- 200 if the allocation is partly or completely successful (0 or more cells were successfull allocated)
+- 404 if the requester has no right to allocate cells for the user.
+
++ Request (application/json)
+
+        {
+            "user_id": 1,
+            "x": 0,
+            "y": 10,
+            "width": 20,
+            "height": 15
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "x": 0,
+            "y": 10,
+            "width": 2,
+            "height": 3,
+            "allocations": "111100"
+        }
+
++ Response 404 (application/json)
+
+        {
+            "result": "Error",
+            "message": "There is no permission th create allocations for the user"
+        }
+
+### Delete the allocation of a user [DELETE]
+
+Deletes the current allocation of the user. If the user is not given then the user belonging to the token is used. 
+
++ Request (application/json)
+
+        {
+            "user_id": 1
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK"
+        }
+
++ Response 404 (application/json)
+
+        {
+            "result": "Error",
+            "message": "There is no permission to delete allocations for the user"
+        }
