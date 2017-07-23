@@ -7,7 +7,7 @@ This API is able to handle the functionality of a multiuser crossword creator si
 
 ## Authentication Account [/auth/account/]
 
-### Register a user [PUT]
+### Register a user [POST]
 
 Use this function if you want to create a new user. Returns
 - 200 if the registration was successful 
@@ -18,7 +18,8 @@ Use this function if you want to create a new user. Returns
 
         {
             "email": "johndoe@gmail.com",
-            "password": "abc123"
+            "password": "abc123",
+            "displayed_name": "Pocak"
         }
 
 
@@ -46,7 +47,7 @@ Use this function if you want to create a new user. Returns
 ### Check if email address exists [GET]
 
 With this function the client can check whether a given email address is already in use or not. It returns
-- 200 if the email address is a valid email address, in this case the is_existing field contains the booleanvalue whether the email address is already used or not
+- 200 if the email address is a valid email address, in this case the `is_existing` field contains the boolean value whether the email address is already used or not
 - 400 if the email address is invalid
 
 
@@ -72,7 +73,7 @@ With this function the client can check whether a given email address is already
         
 ## Login [/auth/login/]
 
-### Log in a user [PUT]
+### Log in a user [POST]
 
 Use this function to log in a user.
 - 200 if the registration was successful. In this case a token is returned which has to be used for the further communication and identification of the user. 
@@ -128,9 +129,9 @@ Use this function to invalidate the user's token (DELETE the is-logged-in status
             "message": "There was no logged in user with this token."
         }
         
-## Authentication Password Reset [/auth/passwrod_reset/]
+## Password Reset [/auth/password_reminder/]
 
-### Password reminder [PUT]
+### Password reminder [POST]
 
 Use this function to request a password reminder email.
 - 200 if the email address exists. It returns the normalised form of the email address where the password reminder email has been sent to. The email contains a link to the password reset page and a verification code. If the user visits the password reset page then they should provide the email address, the verification code and the new password. Then the new password is set for the user.
@@ -158,7 +159,7 @@ Use this function to request a password reminder email.
             "message": "Unknown email address."
         }
 
-### Password reminder [POST]
+### Password reminder [PUT]
 
 Use this function to adjust a new password.
 - 200 if the email address exists and based on the verification code, the new password for that user has been set succesfully. 
@@ -196,16 +197,199 @@ Use this function to adjust a new password.
             "message": "Wrong verification code"
         }
         
-        
+
+## Crosswords [/crossword/]
+
+### Create a new crossword [POST]
+
+Creates a new crossword. The `join_policy` may have the following values with the corresponsing meaning:
+- `opened`: everybody can join if want
+- `approved`: the user may send a request to the crossword manager who can approve or disprove the join request
+- `invitation`: the crossword manager can send invitations to other users in email who can join to this crossword if they want
+
++ Request (application/json)
+
+        {
+            "width": 64,
+            "height": 48,
+            "title": "Birthday Crossword for Sati #90",
+            "join_policy": "everybody"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "crossword_id": 1
+        }
+
+### Modify an existing crossword [PUT]
+
+Changes some attributes of a crossword. 
+The `resize_method_*` are ignored if the corresponding `width` and `height` parameters are not given. Their possible values are the followings:
+- `centre`: the central column/row of the new crossword will be the central column/row of the old crossword. For the rounding rules, see below.
+- `change-top`: the topmost rows will be removed or empty rows will be inserted there
+- `change-left`: the leftmost columns will be removed or empty columns will be inserted there
+- `change-bottom`: the bottommost rows will be removed or empty rows will be inserted there
+- `change-right`: the rightmost columns will be removed or empty columns will be inserted there
+In case of `centre` resize_methods, the following rounding rules are to be applied:
+- If the number of new columns/rows to insert is an odd number then below/right from the old content will be one more column inserted. That is, the old content will be shifted by half cell towards the upper left corner.
+- If the number of new columns/rows to delete is an odd number then above/left from the old content will be one more column deleted. That is, the old content will be shifted by half cell towards the upper left corner.
+
+Examples: 
+- If the crossword has 1*1 cell and the following structure arrives:
+
+      {
+          "width": 10,
+          "height": 8,
+          "resize_method_horizontal": "change-left",
+          "resize_method_vertical": "centre"
+      }    
+
+then the new crossword will have 10 columns and 8 rows (adding 9 columns and 7 rows) and the original cell will have 9 new cells on its left, 3 cells above it and 4 below. 
+
+- If the crossword has 4*4 cell and the following structure arrives:
+
+      {
+          "width": 3,
+          "height": 1,
+          "resize_method_horizontal": "change-left",
+          "resize_method_vertical": "centre"
+      }
+
+then the new crossword will have 3 columns and 1 row (deleting one column and 3 rows). In this case the three cells of the new crossword will be last three cells of the second row of the original crossword.
+
+    Like this:   
+      
+    ABCD
+    EFGH    =>  FGH
+    IJKL   
+    MNOP
+
+If the `manager_id` field is present then the new manager will get a notification email that they are invited to be the new manager of the crossword. They have to accept this invitation via the invitation API. Until it is accepted, the manager is still theold manager.
+
++ Request (application/json)
+
+        {
+            "width": 64,
+            "height": 48,
+            "resize_method_horizontal": "centre",
+            "resize_method_vertical": "change-top",
+            "title": "Birthday Crossword for Sati #90",
+            "join_policy": "everybody",
+            "manager_id": 2
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "crossword_id": 1
+        }
+
+### Return details of a crossword [GET /{crossword_id}]
+
+Return details of the requested crossword.
+- `width` and `height` are the dimensions of the crossword
+- `num_black` is the number of cells that are set to black
+- `num_letters` is the number of the cells that have assigned a letter
+The following fields are not returned because they can be derived from other values:
+- `num_white` = `width` * `height` - `num_black`
+- `filled_ratio` = ( `num_black` + `num_letters` ) / ( `width` * `height` )
+The timestamps are returned in UTC.
+
+
++ Request (application/json)
+
+        {
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "crossword_id": 1,
+            "width": 20,
+            "height": 10,
+            "num_black": 30,
+            "num_letters": 40,
+            "creation_at": "2000-12-31 23:59:59",
+            "lasd_modified_at": "2001-12-31 23:59:59",
+            "manager": {
+                "user_id": 1,
+                "user_name": "pocak"
+            }
+        }
+
++ Response 404 (application/json)
+
+        {
+            "result": "Error",
+            "message": "The crossword doesn't exist."
+        }
+
++ Response 401 (application/json)
+
+        {
+            "result": "Error",
+            "message": "There is no permission the create allocations for the user"
+        }
+
+### Return users of a crossword and their statistics [GET /{crossword_id}/users]
+
+Returns the users of the given crossword. For each user it tells how many letters and how many black cells are defined by them. 
+
++ Request (application/json)
+
+        {
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "users": [
+                {
+                    "user_id": 1,
+                    "user_name": "pocak",
+                    "registered_at": "2000-12-31 23:59:59",
+                    "num_letters": 12,
+                    "num_black": 23
+                },
+                {
+                    "user_id": 2,
+                    "user_name": "ciri",
+                    "registered_at": "2000-12-31 23:59:59",
+                    "num_letters": 12,
+                    "num_black": 23
+                }
+            ]
+        }
+
++ Response 404 (application/json)
+
+        {
+            "result": "Error",
+            "message": "The crossword doesn't exist."
+        }
+
++ Response 401 (application/json)
+
+        {
+            "result": "Error",
+            "message": "There is no permission the create allocations for the user"
+        }
+
+       
 ## Allocations [/allocation/]
 
 ### Create an allocation [POST]
 
-Creates a new allocation for a user (and unallocate the previous one if it exists).
+Creates a new allocation for a user (and unallocate the previous one if it exists) in the given crossword.
 
 If the user is not given then the user defined by the token is used. If the user is given and is different from the token's user then the requester has to be the manager of the crossword.
 
-The "allocations" member of the response is an N-digit-long string where N = width * height from the request and which contains 1s for each successfully allocated cells and 0s for the unsuccessfull ones, row by row. A cell allocation may be unsuccessful if the cell is alreaady allocated by someone else. 
+The `allocations` member of the response is an N-digit-long string where N = `width` * `height` from the request and which contains `1`s for each successfully allocated cells and `0`s for the unsuccessfull ones, row by row. A cell allocation may be unsuccessful if the cell is alreaady allocated by someone else. 
 
 - 200 if the allocation is partly or completely successful (0 or more cells were successfull allocated)
 - 404 if the requester has no right to allocate cells for the user.
@@ -213,6 +397,7 @@ The "allocations" member of the response is an N-digit-long string where N = wid
 + Request (application/json)
 
         {
+            "crossword_id": 1,
             "user_id": 1,
             "x": 0,
             "y": 10,
@@ -235,7 +420,14 @@ The "allocations" member of the response is an N-digit-long string where N = wid
 
         {
             "result": "Error",
-            "message": "There is no permission th create allocations for the user"
+            "message": "The crossword doesn't exist."
+        }
+
++ Response 401 (application/json)
+
+        {
+            "result": "Error",
+            "message": "There is no permission the create allocations for the user"
         }
 
 ### Delete the allocation of a user [DELETE]
@@ -245,6 +437,7 @@ Deletes the current allocation of the user. If the user is not given then the us
 + Request (application/json)
 
         {
+            "crossword_id": 1,
             "user_id": 1
         }
 
@@ -259,4 +452,69 @@ Deletes the current allocation of the user. If the user is not given then the us
         {
             "result": "Error",
             "message": "There is no permission to delete allocations for the user"
+        }
+
+## Cells [/cells/]
+
+### Returns the current values of the cells within an area [GET]
+
+Returns the cells of the given crossword within the requested area. 
+- The "letters" in the response contain the letters of the subsequent cells row-by-row. Empty cells are represented by spaces, black cells by chr(127).
+- The "allocators" is the user_ids of the users who allocated each cells (in same order as "letters").
+- The "definitions" is the list of the cells in random order that have horizontal and/or vertical definition.
+
++ Request (application/json)
+
+        {
+            "crossword_id": 1,
+            "x": 0,
+            "y": 10,
+            "width": 20,
+            "height": 15
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "x": 0,
+            "y": 10,
+            "width": 3,
+            "height": 2,
+            "letters": "AB CDE",
+            "allocators": [
+                1000,
+                1000,
+                1000,
+                1001
+                null,
+                999
+            ],
+            "definitions": [
+                {
+                    "x": 0,
+                    "y": 0,
+                    "v_def": "Vertical definition",
+                    "h_def": "Horizontal definition"
+                },
+                {
+                    "x": 0,
+                    "y": 1,
+                    "v_def": "Capital of Australia"
+                },
+            ]
+        }
+
++ Response 401 (application/json)
+
+        {
+            "result": "Error",
+            "message": "The user is not allowed to read the crossword data."
+        }
+
++ Response 404 (application/json)
+
+        {
+            "result": "Error",
+            "message": "The crossword doesn't exist."
         }
