@@ -197,8 +197,60 @@ Use this function to adjust a new password.
             "message": "Wrong verification code"
         }
         
+## Crosswords [/crosswords/]
 
-## Crosswords [/crossword/]
+### List of crosswords [GET]
+
+Returns the list of the crosswords the user is allowed to list. The user is determined from the token. 
+
+The `title_filter` can contain asterisk symbols as wildcards standing for zero or more characters. If not given then there is no filtering based on title. The matching is not case sensitive.
+
+The `order_by` specifies in what order the results are to return. Default is `-creation_time`. 
+Possible orders:
+- `creation_time`:  when the crossword was created
+- `last_edited`: when the crossword was changed last time
+- `title`: title of the crossword
+- `num_cells`: number of the cells within the crossword (=width*height)
+- `manager`: the crossword manager's name
+
+The `order_by` value means ascending order, or can be prefixed by minus symbol to indicate descending order.
+
+Example: `"order_by": ["-manager", "title"]`
+
+The elements of the `order_by` value mean primary, secondary, etc. ordering rules. 
+
++ Request (application/json)
+
+        {
+            "title_filter": "*ssword of S*",
+            "order_by": ["creation_time"],
+        }
+
++ Response 200 (application/json)
+
+        {
+            "result": "OK",
+            "crosswords": [
+                {
+                    "crossword_id": 1,
+                    "title": "Crossword for Sati",
+                    "last_edited": "2016-12-31 23:59:59",
+                    "manager_id": 1,
+                    "manager_name": "Pocak"
+                },
+                {
+                    "crossword_id": 2,
+                    "title": "Another crossword",
+                    "last_edited": "2017-12-31 23:59:59",
+                    "manager_id": 1,
+                    "manager_name": "Pocak"
+                }
+            ]
+        }
+
+
+
+## Crossword [/crossword/]
 
 ### Create a new crossword [POST]
 
