@@ -2,13 +2,18 @@ swagger: "2.0"
 info:
     version: "1.0.0"
     title: DoBigCrossword API
+    description: "
+    Each response JSON must contain a `result` member that has the value either `ERROR` or `OK`, depending on whether there was an error or not. 
+    
+    
+    In case of `ERROR`, there must exist an `error_code` member as well which contains an English-based code name for the error, like `ERROR__WRONG_PASSWORD`. 
+    "
 consumes:
   - application/json
 produces:
   - application/json
 schemes:
   - https
-
 paths:
     /auth/account/:
         post:
@@ -41,6 +46,10 @@ paths:
                     description: Registration was successful
                     schema:
                         $ref: "#/definitions/OK-response"
+                400: 
+                    description: means the email address is not valid. `error_code` = `ERROR__INVALID_EMAIL_ADDRESS`.
+                    schema:
+                        $ref: "#/definitions/ERROR-response"
                 403:
                     description: "Possible `error_code` values:
                     
@@ -56,7 +65,37 @@ paths:
                     "
                     schema:
                         $ref: "#/definitions/ERROR-response"
-
+        get:
+            summary: Checks whether a given email address is already in use or not.
+            parameters:
+                - in: "body"
+                  name: email address
+                  required: true
+                  schema:
+                        type: object
+                        properties:
+                            email: 
+                                type: string
+                        required: 
+                            - email
+                
+            responses:
+                200: 
+                    description: if the email address is valid then the `is_existing` field tells whether the email address is already in use or not.
+                    schema:
+                        type: object
+                        properties:
+                            result:
+                                type: string
+                                enum: ["OK"]
+                            is_existing:
+                                type: boolean
+                400:
+                    description: means the email address is not valid. `error_code` = `ERROR__INVALID_EMAIL_ADDRESS`.
+                    schema:
+                        $ref: "#/definitions/ERROR-response"
+                          
+        
 definitions:
     OK-response:
         type: object
