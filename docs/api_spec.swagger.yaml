@@ -1,0 +1,78 @@
+swagger: "2.0"
+info:
+    version: "1.0.0"
+    title: DoBigCrossword API
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - https
+
+paths:
+    /auth/account/:
+        post:
+            summary: "Creates a new user"
+            description: If the given email address doesn't exist in the database yet then it creates the new user.
+            parameters:
+              - in: "body"
+                name: user data
+                required: true
+                description: details of the user to create
+                schema: 
+                    type: object
+                    properties:
+                        email:
+                            type: string
+                        password:
+                            type: string
+                        displayed_name:
+                            type: string
+                    required:
+                        - email
+                        - password
+                        - displayed_name
+                    example:
+                        email: "johndoe@gmail.com"
+                        password: "abc123"
+                        displayed_name: "Pocak"
+            responses:
+                200:
+                    description: Registration was successful
+                    schema:
+                        $ref: "#/definitions/OK-response"
+                403:
+                    description: "Possible `error_code` values:
+                    
+                    - `ERROR__EMAIL_ADDRESS_IS_ALREADY_IN_USE`: 
+                    
+                    the given email address is used by another user
+                    
+                    
+                    
+                    - `ERROR__IRREGULAR_PASSWORD`: 
+                    
+                    the password doesn't meet the requirements (length, complexity, etc.)
+                    "
+                    schema:
+                        $ref: "#/definitions/ERROR-response"
+
+definitions:
+    OK-response:
+        type: object
+        properties:
+            result: 
+                type: string
+                enum: [OK]
+                example: "OK"
+                
+    ERROR-response:            
+        type: object
+        properties:
+            result: 
+                type: string
+                enum: [ERROR]
+                example: "ERROR"
+            error_code: 
+                type: string
+                example: "ERROR__BLAH_BLAH"
