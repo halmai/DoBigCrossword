@@ -8,12 +8,14 @@ info:
     
     In case of `ERROR`, there must exist an `error_code` member as well which contains an English-based code name for the error, like `ERROR__WRONG_PASSWORD`. 
     "
+host: localhost
+schemes:
+  - http
+basePath: /halmai/dobigcrossword.com/api/index.php/v1
 consumes:
   - application/json
 produces:
   - application/json
-schemes:
-  - https
 paths:
     /auth/account/:
         post:
