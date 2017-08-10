@@ -46,12 +46,14 @@ paths:
           schema:
             $ref: '#/definitions/OK-response'
         '400':
+          schema:
+            $ref: '#/definitions/ERROR-response'
           description: |
             error_code = "ERROR__INVALID_EMAIL_ADDRESS" 
             meaning: the email address is not valid. 
+        '403':
           schema:
             $ref: '#/definitions/ERROR-response'
-        '403':
           description: >
             error_code = "ERROR__EMAIL_ADDRESS_IS_ALREADY_IN_USE"
 
@@ -61,8 +63,6 @@ paths:
 
             meaning: the password doesn't meet the requirements (length,
             complexity, etc.)
-          schema:
-            $ref: '#/definitions/ERROR-response'
     get:
       summary: Checks whether a given email address is already in use or not.
       parameters:
@@ -88,11 +88,12 @@ paths:
               is_existing:
                 type: boolean
         '400':
+          schema:
+            $ref: '#/definitions/ERROR-response'
           description: |
             error_code = "ERROR__INVALID_EMAIL_ADDRESS"
             means the email address is not valid.
-          schema:
-            $ref: '#/definitions/ERROR-response'
+                
 definitions:
   OK-response:
     type: object
