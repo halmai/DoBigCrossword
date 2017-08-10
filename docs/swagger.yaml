@@ -1,119 +1,119 @@
-swagger: "2.0"
+swagger: '2.0'
 info:
-    version: "1.0.0"
-    title: DoBigCrossword API
-    description: "
-    Each response JSON must contain a `result` member that has the value either `ERROR` or `OK`, depending on whether there was an error or not. 
-    
-    
-    In case of `ERROR`, there must exist an `error_code` member as well which contains an English-based code name for the error, like `ERROR__WRONG_PASSWORD`. 
-    "
+  version: 1.0.0
+  title: DoBigCrossword API
+  description: >
+    Each response JSON must contain a `result` member that has the value either
+    `ERROR` or `OK`,  depending on whether there was an error or not. 
+
+
+    In case of `ERROR`, there must exist an `error_code` member as well which 
+    contains an English-based code name for the error, like
+    `ERROR__WRONG_PASSWORD`. 
 host: localhost
-schemes:
-  - http
 basePath: /halmai/dobigcrossword.com/api/index.php/v1
 consumes:
   - application/json
 produces:
   - application/json
 paths:
-    /auth/account/:
-        post:
-            summary: "Creates a new user"
-            description: If the given email address doesn't exist in the database yet then it creates the new user.
-            parameters:
-              - in: "body"
-                name: user data
-                required: true
-                description: details of the user to create
-                schema: 
-                    type: object
-                    properties:
-                        email:
-                            type: string
-                        password:
-                            type: string
-                        displayed_name:
-                            type: string
-                    required:
-                        - email
-                        - password
-                        - displayed_name
-                    example:
-                        email: "johndoe@gmail.com"
-                        password: "abc123"
-                        displayed_name: "Pocak"
-            responses:
-                200:
-                    description: Registration was successful
-                    schema:
-                        $ref: "#/definitions/OK-response"
-                400: 
-                    description: means the email address is not valid. `error_code` = `ERROR__INVALID_EMAIL_ADDRESS`.
-                    schema:
-                        $ref: "#/definitions/ERROR-response"
-                403:
-                    description: "Possible `error_code` values:
-                    
-                    - `ERROR__EMAIL_ADDRESS_IS_ALREADY_IN_USE`: 
-                    
-                    the given email address is used by another user
-                    
-                    
-                    
-                    - `ERROR__IRREGULAR_PASSWORD`: 
-                    
-                    the password doesn't meet the requirements (length, complexity, etc.)
-                    "
-                    schema:
-                        $ref: "#/definitions/ERROR-response"
-        get:
-            summary: Checks whether a given email address is already in use or not.
-            parameters:
-                - in: "body"
-                  name: email address
-                  required: true
-                  schema:
-                        type: object
-                        properties:
-                            email: 
-                                type: string
-                        required: 
-                            - email
-                
-            responses:
-                200: 
-                    description: if the email address is valid then the `is_existing` field tells whether the email address is already in use or not.
-                    schema:
-                        type: object
-                        properties:
-                            result:
-                                type: string
-                                enum: ["OK"]
-                            is_existing:
-                                type: boolean
-                400:
-                    description: means the email address is not valid. `error_code` = `ERROR__INVALID_EMAIL_ADDRESS`.
-                    schema:
-                        $ref: "#/definitions/ERROR-response"
-                          
-        
+  /auth/account/:
+    post:
+      summary: Creates a new user
+      description: >
+        If the given email address doesn't exist in the database yet then it
+        creates the new user.
+      parameters:
+        - in: body
+          name: user data
+          description: details of the user to create
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+              displayed_name:
+                type: string
+            example:
+              email: johndoe@gmail.com
+              password: abc123
+              displayed_name: Pocak
+      responses:
+        '200':
+          description: Registration was successful
+          schema:
+            $ref: '#/definitions/OK-response'
+        '400':
+          description: |
+            error_code = "ERROR__INVALID_EMAIL_ADDRESS" 
+            meaning: the email address is not valid. 
+          schema:
+            $ref: '#/definitions/ERROR-response'
+        '403':
+          description: >
+            error_code = "ERROR__EMAIL_ADDRESS_IS_ALREADY_IN_USE"
+
+            meaning: the given email address is used by another user
+
+            error_code = "ERROR__IRREGULAR_PASSWORD"
+
+            meaning: the password doesn't meet the requirements (length,
+            complexity, etc.)
+          schema:
+            $ref: '#/definitions/ERROR-response'
+    get:
+      summary: Checks whether a given email address is already in use or not.
+      parameters:
+        - in: body
+          name: email address
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+            example:
+              email: johndoe@gmail.com
+      responses:
+        '200':
+          description: >
+            if the email address is valid then the `is_existing` field tells
+            whether the email address is already in use or not.
+          schema:
+            type: object
+            properties:
+              result:
+                $ref: '#/definitions/OK-stub'
+              is_existing:
+                type: boolean
+        '400':
+          description: |
+            error_code = "ERROR__INVALID_EMAIL_ADDRESS"
+            means the email address is not valid.
+          schema:
+            $ref: '#/definitions/ERROR-response'
 definitions:
-    OK-response:
-        type: object
-        properties:
-            result: 
-                type: string
-                enum: [OK]
-                example: "OK"
-                
-    ERROR-response:            
-        type: object
-        properties:
-            result: 
-                type: string
-                enum: [ERROR]
-                example: "ERROR"
-            error_code: 
-                type: string
-                example: "ERROR__BLAH_BLAH"
+  OK-response:
+    type: object
+    properties:
+      result:
+        type: string
+        enum:
+          - OK
+        example: OK
+  ERROR-response:
+    type: object
+    properties:
+      result:
+        type: string
+        enum:
+          - ERROR
+        example: ERROR
+      error_code:
+        type: string
+        example: ERROR__BLAH_BLAH
+  OK-stub:
+    type: string
+    enum:
+      - OK
